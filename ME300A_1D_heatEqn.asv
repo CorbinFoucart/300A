@@ -57,8 +57,6 @@ error = abs(t - t_exact);
 
 % Condition Numbers, Perturbation
 dA = 0.1*A;
-dA(1,1) = 0;
-dA(num_points + 1, num_points + 1) = 0;
 t_pert = (A + dA)\b;
 
 % save the data we created for plotting
@@ -106,14 +104,14 @@ semilogy(N, K)
 
 figure()
 hold all
-title('Perturbed Temperature Solutions')
+title('Temperature Solutions')
 xlabel('x')
-ylabel('T_{Pert}')
+ylabel('T')
 % exact solution
 plot(C{1,4}{1,5}, C{1,4}{1,4}, 'r-' ,'linewidth', 2)
 % for all other solutions
 for plot_case = 1:length(N)
-    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,7}, '--')
+    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,3}, '--')
 end
 legend('Exact Solution', 'N = 5', 'N = 10', 'N = 25', 'N = 200', ...
     'Location', 'southeast')
