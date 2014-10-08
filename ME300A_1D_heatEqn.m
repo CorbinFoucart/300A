@@ -1,7 +1,7 @@
 % HW 1, 1D heat Equation
 % Corbin Foucart
 
-%% Sinusoidal Source Function
+%% Sinusoidal Source Function, 1.d,e
 clear all; close all; clc;
 
 % Source Function
@@ -64,7 +64,7 @@ t_pert = (A + dA)\b;
 % save the data we created for plotting
 C{ii} = {A, b, t, t_exact, x, error, t_pert};
 
-K(ii) = norm(inv(A), 'fro')*norm(A, 'fro')
+K(ii) = norm(inv(A), 'fro')*norm(A, 'fro');
 
 end
 
@@ -78,7 +78,7 @@ title('Temperature Solutions')
 xlabel('x')
 ylabel('T')
 % exact solution
-plot(C{1,4}{1,5}, C{1,4}{1,4}, 'r-' ,'linewidth', 2)
+plot(C{1,4}{1,5}, C{1,4}{1,4}, 'k-' ,'linewidth', 2)
 % for all other solutions
 for plot_case = 1:length(N)
     plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,3}, '--')
@@ -92,17 +92,18 @@ title('Error for each case')
 xlabel('x')
 ylabel('| T - T_{exact} |')
 for plot_case = 1:length(N)
-    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,6}, '-')
+    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,6}, '-', 'linewidth', 2)
 end
 legend('N = 5', 'N = 10', 'N = 25', 'N = 200', ...
     'Location', 'northeast')
 
 
 figure()
+semilogy(N, K)
+hold on
 title('Condition Number')
 xlabel('N')
 ylabel('K(A)')
-semilogy(N, K)
 
 figure()
 hold all
@@ -110,16 +111,16 @@ title('Perturbed Temperature Solutions')
 xlabel('x')
 ylabel('T_{Pert}')
 % exact solution
-plot(C{1,4}{1,5}, C{1,4}{1,4}, 'r-' ,'linewidth', 2)
+plot(C{1,4}{1,5}, C{1,4}{1,4}, 'k-' ,'linewidth', 2)
 % for all other solutions
 for plot_case = 1:length(N)
-    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,7}, '--')
+    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,7}, '--', 'linewidth', 2)
 end
 legend('Exact Solution', 'N = 5', 'N = 10', 'N = 25', 'N = 200', ...
     'Location', 'southeast')
 
 
-%% Piecewise Source Function
+%% Piecewise Source Function, 1.f
 clear all; close all; clc;
 
 % boundary conditions
@@ -193,6 +194,20 @@ plot(C{1,length(N)}{1,4}, C{1,length(N)}{1,3}, 'k-', 'linewidth', 2)
 legend('N = 5', 'N = 10', 'N = 25', 'N = 200', ...
     'Location', 'southwest')
 
+%% Part 1.h
+clear all; close all; clc;
 
+A = zeros(6);
+for i = 2:5
+    A(i,i) = -2;
+    A(i, i - 1) = 1;
+    A(i, i + 1) = 1;
+end
+A(1,1) = 1;
+A(6, 5) = -1;
+A(6,6) = 1;
 
-%  }
+A
+A_inverse = inv(A)
+
+fprintf('We see that the inverse of A exists and A is NOT singular.');

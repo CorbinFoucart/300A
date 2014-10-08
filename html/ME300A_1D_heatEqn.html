@@ -1,0 +1,501 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>ME300A_1D_heatEqn</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-10-08"><meta name="DC.source" content="ME300A_1D_heatEqn.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Sinusoidal Source Function, 1.d,e</a></li><li><a href="#3">Piecewise Source Function, 1.f</a></li><li><a href="#4">Part 1.h</a></li></ul></div><pre class="codeinput"><span class="comment">% HW 1, 1D heat Equation</span>
+<span class="comment">% Corbin Foucart</span>
+</pre><h2>Sinusoidal Source Function, 1.d,e<a name="2"></a></h2><pre class="codeinput">clear <span class="string">all</span>; close <span class="string">all</span>; clc;
+
+<span class="comment">% Source Function</span>
+source = @(x) -10.*sin(3*pi/2.*x);
+
+<span class="comment">% Exact Solution</span>
+exact_soln = @(x) (2 + 40/(9*pi^2)).*x + 40/(9*pi^2).*sin(3*pi/2.*x);
+
+<span class="comment">% boundary conditions</span>
+T_0 = 0; T_L = 2;
+x_0 = 0; x_L = 1;
+
+<span class="comment">% ---------------------- Approximate Solution ------------------------ %</span>
+<span class="comment">% Goal is to solve system At = b</span>
+
+<span class="comment">% number of points in domain</span>
+N = [5, 10, 25, 200];
+
+<span class="comment">% for each number of points</span>
+<span class="keyword">for</span> ii = 1:length(N)
+
+num_points = N(ii);
+h = 1/num_points;
+x = [x_0:h:x_L]';
+
+<span class="comment">% assembly of A</span>
+A = zeros(num_points + 1);
+<span class="keyword">for</span> i = 2:num_points
+    A(i, i - 1) = 1;
+    A(i,i) = -2;
+    A(i, i + 1) = 1;
+<span class="keyword">end</span>
+A(1,1) = 1;
+A(num_points + 1, num_points + 1) = 1;
+
+<span class="comment">% assembly of b (rhs)</span>
+b = zeros(num_points + 1, 1);
+
+f_x = source(x);
+<span class="keyword">for</span> k = 2: num_points
+    b(k) = f_x(k) * h^2;
+<span class="keyword">end</span>
+b(1) = T_0;
+b(num_points + 1) = T_L;
+
+<span class="comment">% temperatures vector (soln vector)</span>
+
+t = A\b;
+t_exact = exact_soln(x);
+
+<span class="comment">% Error</span>
+error = abs(t - t_exact);
+
+<span class="comment">% Condition Numbers, Perturbation</span>
+dA = 0.1*A;
+dA(1,1) = 0;
+dA(num_points + 1, num_points + 1) = 0;
+t_pert = (A + dA)\b;
+
+<span class="comment">% save the data we created for plotting</span>
+C{ii} = {A, b, t, t_exact, x, error, t_pert};
+
+K(ii) = norm(inv(A), <span class="string">'fro'</span>)*norm(A, <span class="string">'fro'</span>);
+
+<span class="keyword">end</span>
+
+
+
+<span class="comment">% ------------------- Visualization, Plotting ------------------------- %</span>
+
+figure()
+hold <span class="string">all</span>
+title(<span class="string">'Temperature Solutions'</span>)
+xlabel(<span class="string">'x'</span>)
+ylabel(<span class="string">'T'</span>)
+<span class="comment">% exact solution</span>
+plot(C{1,4}{1,5}, C{1,4}{1,4}, <span class="string">'k-'</span> ,<span class="string">'linewidth'</span>, 2)
+<span class="comment">% for all other solutions</span>
+<span class="keyword">for</span> plot_case = 1:length(N)
+    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,3}, <span class="string">'--'</span>)
+<span class="keyword">end</span>
+legend(<span class="string">'Exact Solution'</span>, <span class="string">'N = 5'</span>, <span class="string">'N = 10'</span>, <span class="string">'N = 25'</span>, <span class="string">'N = 200'</span>, <span class="keyword">...</span>
+    <span class="string">'Location'</span>, <span class="string">'southeast'</span>)
+
+figure()
+hold <span class="string">all</span>
+title(<span class="string">'Error for each case'</span>)
+xlabel(<span class="string">'x'</span>)
+ylabel(<span class="string">'| T - T_{exact} |'</span>)
+<span class="keyword">for</span> plot_case = 1:length(N)
+    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,6}, <span class="string">'-'</span>, <span class="string">'linewidth'</span>, 2)
+<span class="keyword">end</span>
+legend(<span class="string">'N = 5'</span>, <span class="string">'N = 10'</span>, <span class="string">'N = 25'</span>, <span class="string">'N = 200'</span>, <span class="keyword">...</span>
+    <span class="string">'Location'</span>, <span class="string">'northeast'</span>)
+
+
+figure()
+semilogy(N, K)
+hold <span class="string">on</span>
+title(<span class="string">'Condition Number'</span>)
+xlabel(<span class="string">'N'</span>)
+ylabel(<span class="string">'K(A)'</span>)
+
+figure()
+hold <span class="string">all</span>
+title(<span class="string">'Perturbed Temperature Solutions'</span>)
+xlabel(<span class="string">'x'</span>)
+ylabel(<span class="string">'T_{Pert}'</span>)
+<span class="comment">% exact solution</span>
+plot(C{1,4}{1,5}, C{1,4}{1,4}, <span class="string">'k-'</span> ,<span class="string">'linewidth'</span>, 2)
+<span class="comment">% for all other solutions</span>
+<span class="keyword">for</span> plot_case = 1:length(N)
+    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,7}, <span class="string">'--'</span>, <span class="string">'linewidth'</span>, 2)
+<span class="keyword">end</span>
+legend(<span class="string">'Exact Solution'</span>, <span class="string">'N = 5'</span>, <span class="string">'N = 10'</span>, <span class="string">'N = 25'</span>, <span class="string">'N = 200'</span>, <span class="keyword">...</span>
+    <span class="string">'Location'</span>, <span class="string">'southeast'</span>)
+</pre><img vspace="5" hspace="5" src="ME300A_1D_heatEqn_01.png" alt=""> <img vspace="5" hspace="5" src="ME300A_1D_heatEqn_02.png" alt=""> <img vspace="5" hspace="5" src="ME300A_1D_heatEqn_03.png" alt=""> <img vspace="5" hspace="5" src="ME300A_1D_heatEqn_04.png" alt=""> <h2>Piecewise Source Function, 1.f<a name="3"></a></h2><pre class="codeinput">clear <span class="string">all</span>; close <span class="string">all</span>; clc;
+
+<span class="comment">% boundary conditions</span>
+T_0 = 0; T_L = 2;
+x_0 = 0; x_L = 1;
+
+<span class="comment">% ---------------------- Approximate Solution ------------------------ %</span>
+<span class="comment">% Goal is to solve system At = b</span>
+
+<span class="comment">% number of points in domain</span>
+N = [5, 10, 25, 200];
+
+<span class="comment">% for each number of points</span>
+<span class="keyword">for</span> ii = 1:length(N)
+
+num_points = N(ii);
+h = 1/num_points;
+x = [x_0:h:x_L]';
+
+<span class="comment">% assembly of A</span>
+A = zeros(num_points + 1);
+<span class="keyword">for</span> i = 2:num_points
+    A(i, i - 1) = 1;
+    A(i,i) = -2;
+    A(i, i + 1) = 1;
+<span class="keyword">end</span>
+A(1,1) = 1;
+A(num_points + 1, num_points + 1) = 1;
+
+<span class="comment">% computation of source function</span>
+f_x = zeros(length(x), 1);
+<span class="keyword">for</span> j = 1:length(x)
+    <span class="keyword">if</span> and((x(j) &gt; 1/6),(x(j) &lt; 1/3))
+        f_x(j) = -100;
+    <span class="keyword">elseif</span> ((x(j) &gt; 2/3) &amp;&amp; (x(j) &lt; 5/6))
+        f_x(j) = 100;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% assembly of b (rhs)</span>
+b = zeros(num_points + 1, 1);
+<span class="keyword">for</span> k = 2: num_points
+    b(k) = f_x(k) * h^2;
+<span class="keyword">end</span>
+b(1) = T_0;
+b(num_points + 1) = T_L;
+
+<span class="comment">% temperatures vector (soln vector)</span>
+
+t = A\b;
+
+<span class="comment">% save the data we created for plotting</span>
+C{ii} = {A, b, t, x, f_x};
+<span class="keyword">end</span>
+
+
+
+<span class="comment">% ------------------- Visualization, Plotting ------------------------- %</span>
+
+figure()
+hold <span class="string">all</span>
+title(<span class="string">'Temperature Solutions'</span>)
+xlabel(<span class="string">'x'</span>)
+ylabel(<span class="string">'T'</span>)
+<span class="comment">% plot every solution besides last</span>
+<span class="keyword">for</span> plot_case = 1:length(N) - 1
+    plot(C{1,plot_case}{1,4}, C{1,plot_case}{1,3}, <span class="string">'--'</span>)
+<span class="keyword">end</span>
+<span class="comment">% plot best case thicker and in black for comparison</span>
+plot(C{1,length(N)}{1,4}, C{1,length(N)}{1,3}, <span class="string">'k-'</span>, <span class="string">'linewidth'</span>, 2)
+legend(<span class="string">'N = 5'</span>, <span class="string">'N = 10'</span>, <span class="string">'N = 25'</span>, <span class="string">'N = 200'</span>, <span class="keyword">...</span>
+    <span class="string">'Location'</span>, <span class="string">'southwest'</span>)
+</pre><img vspace="5" hspace="5" src="ME300A_1D_heatEqn_05.png" alt=""> <h2>Part 1.h<a name="4"></a></h2><pre class="codeinput">clear <span class="string">all</span>; close <span class="string">all</span>; clc;
+
+A = zeros(6);
+<span class="keyword">for</span> i = 2:5
+    A(i,i) = -2;
+    A(i, i - 1) = 1;
+    A(i, i + 1) = 1;
+<span class="keyword">end</span>
+A(1,1) = 1;
+A(6, 5) = -1;
+A(6,6) = 1;
+
+A
+A_inverse = inv(A)
+
+fprintf(<span class="string">'We see that the inverse of A exists and A is NOT singular.'</span>);
+</pre><pre class="codeoutput">
+A =
+
+     1     0     0     0     0     0
+     1    -2     1     0     0     0
+     0     1    -2     1     0     0
+     0     0     1    -2     1     0
+     0     0     0     1    -2     1
+     0     0     0     0    -1     1
+
+
+A_inverse =
+
+    1.0000         0         0         0         0         0
+    1.0000   -1.0000   -1.0000   -1.0000   -1.0000    1.0000
+    1.0000   -1.0000   -2.0000   -2.0000   -2.0000    2.0000
+    1.0000   -1.0000   -2.0000   -3.0000   -3.0000    3.0000
+    1.0000   -1.0000   -2.0000   -3.0000   -4.0000    4.0000
+    1.0000   -1.0000   -2.0000   -3.0000   -4.0000    5.0000
+
+We see that the inverse of A exists and A is NOT singular.</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p></div><!--
+##### SOURCE BEGIN #####
+% HW 1, 1D heat Equation
+% Corbin Foucart
+
+%% Sinusoidal Source Function, 1.d,e
+clear all; close all; clc;
+
+% Source Function
+source = @(x) -10.*sin(3*pi/2.*x);
+
+% Exact Solution
+exact_soln = @(x) (2 + 40/(9*pi^2)).*x + 40/(9*pi^2).*sin(3*pi/2.*x);
+
+% boundary conditions
+T_0 = 0; T_L = 2;
+x_0 = 0; x_L = 1;
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH Approximate Solution REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH %
+% Goal is to solve system At = b
+
+% number of points in domain
+N = [5, 10, 25, 200];
+
+% for each number of points
+for ii = 1:length(N)
+
+num_points = N(ii);    
+h = 1/num_points;
+x = [x_0:h:x_L]';
+
+% assembly of A
+A = zeros(num_points + 1);
+for i = 2:num_points
+    A(i, i - 1) = 1;
+    A(i,i) = -2;
+    A(i, i + 1) = 1;
+end
+A(1,1) = 1;
+A(num_points + 1, num_points + 1) = 1;
+
+% assembly of b (rhs)
+b = zeros(num_points + 1, 1);
+
+f_x = source(x);
+for k = 2: num_points
+    b(k) = f_x(k) * h^2;   
+end
+b(1) = T_0;
+b(num_points + 1) = T_L;
+
+% temperatures vector (soln vector)
+
+t = A\b;
+t_exact = exact_soln(x);
+
+% Error
+error = abs(t - t_exact);
+
+% Condition Numbers, Perturbation
+dA = 0.1*A;
+dA(1,1) = 0;
+dA(num_points + 1, num_points + 1) = 0;
+t_pert = (A + dA)\b;
+
+% save the data we created for plotting
+C{ii} = {A, b, t, t_exact, x, error, t_pert};
+
+K(ii) = norm(inv(A), 'fro')*norm(A, 'fro');
+
+end
+
+
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- Visualization, Plotting REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- %
+
+figure()
+hold all
+title('Temperature Solutions')
+xlabel('x')
+ylabel('T')
+% exact solution
+plot(C{1,4}{1,5}, C{1,4}{1,4}, 'k-' ,'linewidth', 2)
+% for all other solutions
+for plot_case = 1:length(N)
+    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,3}, 'REPLACE_WITH_DASH_DASH')
+end
+legend('Exact Solution', 'N = 5', 'N = 10', 'N = 25', 'N = 200', ...
+    'Location', 'southeast')
+
+figure()
+hold all
+title('Error for each case')
+xlabel('x')
+ylabel('| T - T_{exact} |')
+for plot_case = 1:length(N)
+    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,6}, '-', 'linewidth', 2)
+end
+legend('N = 5', 'N = 10', 'N = 25', 'N = 200', ...
+    'Location', 'northeast')
+
+
+figure()
+semilogy(N, K)
+hold on
+title('Condition Number')
+xlabel('N')
+ylabel('K(A)')
+
+figure()
+hold all
+title('Perturbed Temperature Solutions')
+xlabel('x')
+ylabel('T_{Pert}')
+% exact solution
+plot(C{1,4}{1,5}, C{1,4}{1,4}, 'k-' ,'linewidth', 2)
+% for all other solutions
+for plot_case = 1:length(N)
+    plot(C{1,plot_case}{1,5}, C{1,plot_case}{1,7}, 'REPLACE_WITH_DASH_DASH', 'linewidth', 2)
+end
+legend('Exact Solution', 'N = 5', 'N = 10', 'N = 25', 'N = 200', ...
+    'Location', 'southeast')
+
+
+%% Piecewise Source Function, 1.f
+clear all; close all; clc;
+
+% boundary conditions
+T_0 = 0; T_L = 2;
+x_0 = 0; x_L = 1;
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH Approximate Solution REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH %
+% Goal is to solve system At = b
+
+% number of points in domain
+N = [5, 10, 25, 200];
+
+% for each number of points
+for ii = 1:length(N)
+
+num_points = N(ii);    
+h = 1/num_points;
+x = [x_0:h:x_L]';
+
+% assembly of A
+A = zeros(num_points + 1);
+for i = 2:num_points
+    A(i, i - 1) = 1;
+    A(i,i) = -2;
+    A(i, i + 1) = 1;
+end
+A(1,1) = 1;
+A(num_points + 1, num_points + 1) = 1;
+
+% computation of source function
+f_x = zeros(length(x), 1);
+for j = 1:length(x)
+    if and((x(j) > 1/6),(x(j) < 1/3))
+        f_x(j) = -100;
+    elseif ((x(j) > 2/3) && (x(j) < 5/6))
+        f_x(j) = 100;
+    end
+end
+
+% assembly of b (rhs)
+b = zeros(num_points + 1, 1);
+for k = 2: num_points
+    b(k) = f_x(k) * h^2;   
+end
+b(1) = T_0;
+b(num_points + 1) = T_L;
+
+% temperatures vector (soln vector)
+
+t = A\b;
+
+% save the data we created for plotting
+C{ii} = {A, b, t, x, f_x};
+end
+
+
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- Visualization, Plotting REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- %
+
+figure()
+hold all
+title('Temperature Solutions')
+xlabel('x')
+ylabel('T')
+% plot every solution besides last
+for plot_case = 1:length(N) - 1
+    plot(C{1,plot_case}{1,4}, C{1,plot_case}{1,3}, 'REPLACE_WITH_DASH_DASH')
+end
+% plot best case thicker and in black for comparison
+plot(C{1,length(N)}{1,4}, C{1,length(N)}{1,3}, 'k-', 'linewidth', 2)
+legend('N = 5', 'N = 10', 'N = 25', 'N = 200', ...
+    'Location', 'southwest')
+
+%% Part 1.h
+clear all; close all; clc;
+
+A = zeros(6);
+for i = 2:5
+    A(i,i) = -2;
+    A(i, i - 1) = 1;
+    A(i, i + 1) = 1;
+end
+A(1,1) = 1;
+A(6, 5) = -1;
+A(6,6) = 1;
+
+A
+A_inverse = inv(A)
+
+fprintf('We see that the inverse of A exists and A is NOT singular.');
+##### SOURCE END #####
+--></body></html>
