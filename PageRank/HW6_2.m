@@ -1,7 +1,7 @@
 % HW 6 Problem 2
 % Corbin Foucart
 
-clear all; close all; clc;
+close all; clc;
 
 A = [1 2 3;
      4 8 1;
@@ -22,4 +22,8 @@ X = zeros(cols, cols);
 X(cols, cols) = 1/R(cols, cols).^2;
 
 X = AtAContruct(R,X,n)
+
+difference = X - answer
+
+
 
