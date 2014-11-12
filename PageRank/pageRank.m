@@ -29,8 +29,8 @@ P = P*sums;
 P_check = sum(P);
 
 % Plotting Sparsity for P
-%spy(P);
-%axis square;
+spy(P);
+axis square;
 
 % ---- Solve matrix equation directly ----- %
 n = length(P(1,:));
@@ -46,9 +46,9 @@ check_direct = sum(x_direct,1);
 % Find the top N values
 top_N = 5;
 [sorted_dx, sorted_ind] = sort(x_direct, 'descend');
-topN_x = sorted_dx(1:top_N);
-topN_xind = sorted_ind(1:top_N);
-topN_names = movieName(topN_xind);
+topN_x = sorted_dx(1:top_N)
+topN_xind = sorted_ind(1:top_N)
+topN_names = movieName(topN_xind)
 
 % ---------------- Jacobi Iteration --------------- %
 % Here we have already constructed our pageRank
@@ -74,7 +74,7 @@ while (error > eps)
   i = i + 1;
 end
 
-error(end)
+last_error = error(end)
 x_check_next;
 n_iter
 
@@ -83,9 +83,22 @@ x_jacobi = x_check_next./norm(x_check_next,1);
 
 figure()
 plot([1:1:length(error)], error)
+title('Error vs. Iteration Number n')
 xlabel(' Iteration Number n')
 ylabel('Error ||x^{k+1}-x^{k}|| / ||x^{k}||')
 
+% -------- Movie rating etc. plots ---------- %
+figure()
+scatter(movieRating, x_direct)
+xlabel('Movie Rating /10')
+ylabel('Page Rank Value')
+title('Movie Ratings vs. PageRank Values')
+
+figure()
+scatter(movieVotes, x_direct)
+xlabel('Movie Votes')
+ylabel('Page Rank Value')
+title('Movie Votes vs. PageRank Values')
 
 
 
